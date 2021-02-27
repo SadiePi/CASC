@@ -1,7 +1,14 @@
+/**
+ * CASC.ts, by Sadie Dotzler (https://github.com/SadiePi)
+ *
+ * Leverages p5.js to enable the easy construction and visualization of compass
+ * and straightedge constructions
+ */
+
 import P5 from "p5";
 import * as Collections from "typescript-collections";
 
-// TODO: Stop using createVector so much (maybe?); create them once then use set
+// TODO maybe stop using createVector so much ; create them once then use set()
 
 export abstract class Point {
   private calced = false;
@@ -28,7 +35,6 @@ export abstract class Point {
   }
 }
 
-// TODO: Rework to use (time: number) => P5.Vector as vector arg
 class FreePoint extends Point {
   constructor(
     public p5: P5,
@@ -105,6 +111,7 @@ class LinesIntersectionPoint extends Point {
   }
 }
 
+// TODO make this not suck
 class Arc {
   constructor(
     public p5: P5,
@@ -286,6 +293,8 @@ export class Construction {
     for (let o = 0; o < circs.length; o++) circs[o].draw();
   }
 
+  // TODO support adding user-constructed points lines and circles
+
   /**
    * Adds to the construction an idealized point, with position technically
    * defined by a P5.Vector but theoretically independant of any unit system.
@@ -367,6 +376,9 @@ export class Construction {
     );
     return this;
   }
+
+  // TODO refactor all these addBlaIntersectionPoint to
+  //  addIntersectionPoint(Line|Circle,Line|Circle,toggle)
 
   /**
    * Adds to the construction a point defined by the intersection of two lines
@@ -578,6 +590,7 @@ export class Construction {
       .addLinesIntersectionPoint(name, name + "pb1", name + "pb2", visible);
   }
 
+  // TODO make this not suck
   addAngleBisector(
     name: String,
     point1: String,

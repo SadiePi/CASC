@@ -64,7 +64,6 @@ const sketch = (p5: P5) => {
       .addLine("DE", "D", "E", true, true)
       .addLine("EF", "E", "F", true, true)
       .addLine("FA", "F", "A", true, true);
-    //.addAngleBisector("AB1","C","A","D",true,true).intermediatesVisible = true;
   };
 
   p5.draw = () => {

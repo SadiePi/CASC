@@ -1,7 +1,7 @@
 {
   "name": "casc",
   "version": "1.0.0",
-  "description": "Compass And Straightedge Constructions\n\nLeverages p5js to provide a library for creating and displaying straightedge and compass constructions",
+  "description": "Compass and straightedge constructions",
   "main": "index.html",
   "scripts": {
     "start": "parcel index.html --open",
