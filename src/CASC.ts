@@ -1,48 +1,49 @@
 /**
  * CASC.ts, by Sadie Dotzler (https://github.com/SadiePi)
  *
- * Leverages p5.js to enable the easy construction and visualization of compass
- * and straightedge constructions
+ * A small library on top of p5.js for creating compass and straightedge constructions
  */
 
+import p5 from "p5";
 import P5 from "p5";
 import * as Collections from "typescript-collections";
 
-// TODO maybe stop using createVector so much ; create them once then use set()
-
 export abstract class Point {
-  private calced = false;
-  private _vector: P5.Vector;
-  protected abstract calcVector(): P5.Vector;
+  private _vector: P5.Vector = null;
+
+  constructor(public p5: P5, public visible: boolean, public color: p5.Color) {}
+
+  draw() {
+    let p = this.getVector();
+    if (p == null) return;
+
+    this.p5.stroke(this.color);
+    this.p5.fill(this.color);
+    this.p5.circle(p.x, p.y, 5);
+  }
+
   reset() {
-    this.calced = false;
+    this._vector = null;
   }
 
   getVector(): P5.Vector {
-    if (!this.calced) {
-      this._vector = this.calcVector();
-      this.calced = true;
-    }
+    if (this._vector == null) this._vector = this.calcVector();
     return this._vector;
   }
-  constructor(public p5: P5, public visible: boolean) {}
-  draw() {
-    if (!this.visible) return;
 
-    let p = this.getVector();
-    if (p == null) return;
-    this.p5.circle(p.x, p.y, 5);
-  }
+  protected abstract calcVector(): P5.Vector;
 }
 
 class FreePoint extends Point {
   constructor(
     public p5: P5,
     public vector: P5.Vector | ((time: number) => P5.Vector),
-    public visible: boolean
+    public visible: boolean,
+    public color: p5.Color
   ) {
-    super(p5, visible);
+    super(p5, visible, color);
   }
+
   calcVector() {
     if (typeof this.vector === "function") return this.vector(this.p5.millis());
     return this.vector;
@@ -64,13 +65,16 @@ export class Line {
     public point1: Point,
     public point2: Point,
     public segment: boolean,
-    public visible: boolean
+    public visible: boolean,
+    public color: p5.Color
   ) {}
   draw() {
-    if (!this.visible) return;
     let p1 = this.point1.getVector();
     let p2 = this.point2.getVector();
     if (p1 == null || p2 == null) return;
+
+    this.p5.stroke(this.color);
+    this.p5.fill(this.color);
     if (this.segment) {
       this.p5.line(p1.x, p1.y, p2.x, p2.y);
     } else {
@@ -89,9 +93,10 @@ class LinesIntersectionPoint extends Point {
     public p5: P5,
     public line1: Line,
     public line2: Line,
-    public visible: boolean
+    public visible: boolean,
+    public color: p5.Color
   ) {
-    super(p5, visible);
+    super(p5, visible, color);
   }
   calcVector() {
     let p1 = this.line1.point1.getVector();
@@ -118,7 +123,8 @@ class Arc {
     public center: Point,
     public edge1: Point,
     public edge2: Point,
-    public visible: boolean
+    public visible: boolean,
+    public color: p5.Color
   ) {}
 
   getAngle1(e1: P5.Vector, e2: P5.Vector, c: P5.Vector): number {
@@ -135,9 +141,10 @@ class Arc {
     if (r !== P5.Vector.dist(e2, c)) return;
     let theta1 = P5.Vector.sub(e1, c).angleBetween(P5.Vector.sub(e2, c));
     let theta2 = P5.Vector.sub(e1, c).angleBetween(P5.Vector.sub(e2, c));
-    this.p5.noFill();
+
+    this.p5.stroke(this.color);
+    this.p5.fill(this.color);
     this.p5.arc(c.x, c.y, 2 * r, 2 * r, theta1, theta2);
-    this.p5.fill(255);
   }
 }
 
@@ -155,16 +162,17 @@ export class Circle {
     public p5: P5,
     public center: Point,
     public edge: Point,
-    public visible: boolean
+    public visible: boolean,
+    public color: p5.Color
   ) {}
   draw() {
-    if (!this.visible) return;
     let center = this.center.getVector();
     let edge = this.edge.getVector();
     if (center == null || edge == null) return;
+
     this.p5.noFill();
+    this.p5.stroke(this.color);
     this.p5.circle(center.x, center.y, 2 * P5.Vector.dist(edge, center));
-    this.p5.fill(255);
   }
 }
 
@@ -186,9 +194,10 @@ class LineCircleIntersectionPoint extends Point {
     public line: Line,
     public circle: Circle,
     public toggle: boolean,
-    public visible: boolean
+    public visible: boolean,
+    public color: p5.Color
   ) {
-    super(p5, visible);
+    super(p5, visible, color);
   }
   calcVector() {
     let c = this.circle.center.getVector();
@@ -204,11 +213,8 @@ class LineCircleIntersectionPoint extends Point {
 
     let discriminant = r * r * drSq - det * det;
     if (discriminant < 0) return null;
-    /*if (discriminant === 0)
-      return this.p5.createVector(
-        (det * d.y) / det + c.x,
-        (-det * d.x) / det + c.y
-      );*/
+    // We don't need to check for discriminant==0 because
+    //  even if it is, the following will handle it just fine anyway
     let discSqrt = this.p5.sqrt(discriminant);
     let sgn = d.y < 0 ? -1 : 1;
     let toggle = this.toggle ? -1 : 1;
@@ -240,9 +246,10 @@ class CirclesIntersectionPoint extends Point {
     public circle1: Circle,
     public circle2: Circle,
     public toggle: boolean,
-    public visible: boolean
+    public visible: boolean,
+    public color: p5.Color
   ) {
-    super(p5, visible);
+    super(p5, visible, color);
   }
 
   calcVector() {
@@ -257,7 +264,9 @@ class CirclesIntersectionPoint extends Point {
 
     let d = P5.Vector.sub(c1, c2).mag();
     let l = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
-    let h = this.p5.sqrt(r1 * r1 - l * l);
+    let hSq = r1 * r1 - l * l;
+    if (hSq < -0.0001) return null;
+    let h = this.p5.sqrt(hSq);
     if (this.toggle) h = -h;
 
     let ret = P5.Vector.sub(c2, c1)
@@ -269,34 +278,40 @@ class CirclesIntersectionPoint extends Point {
   }
 }
 
+/**
+ * A compass and straightedge construction
+ */
 export class Construction {
   // TODO refactor to Collections.Dictionary<String, Point|Line|Circle>()
-  private pts = new Collections.Dictionary<String, Point>();
-  private lines = new Collections.Dictionary<String, Line>();
-  private circs = new Collections.Dictionary<String, Circle>();
+  private objects = new Collections.Dictionary<String, Point | Line | Circle>();
 
-  public intermediatesVisible: boolean = false;
-
-  constructor(public p5: P5) {}
+  constructor(
+    public p5: P5,
+    public defaultColor: p5.Color = p5.color("white"),
+    public intermediatesVisible: boolean = false
+  ) {}
 
   draw() {
-    let pts = this.pts.values();
-    let lines = this.lines.values();
-    let circs = this.circs.values();
+    let objs = this.objects.values();
 
-    for (let o = 0; o < pts.length; o++) {
-      pts[o].reset();
-      pts[o].draw();
+    for (let i = 0; i < objs.length; i++) {
+      let o = objs[i];
+      if (o instanceof Point) (o as Point).reset();
+      if (this.intermediatesVisible || o.visible) o.draw();
     }
-
-    for (let o = 0; o < lines.length; o++) lines[o].draw();
-    for (let o = 0; o < circs.length; o++) circs[o].draw();
   }
 
-  // TODO support adding user-constructed points lines and circles
+  getObject(name: String): Point | Line | Circle {
+    return this.objects.getValue(name);
+  }
+
+  addObject(name: String, object: Point | Line | Circle): Construction {
+    this.objects.setValue(name, object);
+    return this;
+  }
 
   /**
-   * Adds to the construction an idealized point, with position technically
+   * Adds an idealized point, with position technically
    * defined by a P5.Vector but theoretically independant of any unit system.
    *
    * To be a true compass-and-straightedge construction, THIS VECTOR MUST NOT
@@ -311,110 +326,119 @@ export class Construction {
    * @param name The name by which to access this point
    * @param vector The vector defining the position of this point, or a function of time returning a vector
    * @param visible Whether or not to draw this point
+   * @param color The color to draw this point with
    * @chainable
    */
   addPoint(
     name: String,
     vector: P5.Vector | ((time: number) => P5.Vector),
-    visible: boolean
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
   ): Construction {
-    this.pts.setValue(name, new FreePoint(this.p5, vector, visible));
+    this.objects.setValue(name, new FreePoint(this.p5, vector, visible, color));
     return this;
   }
 
   /**
-   * Adds to the construction a straight, infinite line through 2 points
+   * Adds a straight, infinite line through 2 points
    * @param name The name by which to access this line
    * @param point1 The first point this line intersects with
    * @param point2 The second point this line intersects with
    * @param segment Whether or not to draw this line as a segement ending at each of its defining points
    * @param visible Whether or not to draw this line
+   * @param color The color to draw this line with
    * @chainable
    */
   addLine(
     name: String,
     point1: String,
     point2: String,
-    segment: boolean,
-    visible: boolean
+    visible: boolean = false,
+    segment: boolean = false,
+    color: p5.Color = this.defaultColor
   ): Construction {
-    this.lines.setValue(
+    this.objects.setValue(
       name,
       new Line(
         this.p5,
-        this.pts.getValue(point1),
-        this.pts.getValue(point2),
+        this.objects.getValue(point1) as Point,
+        this.objects.getValue(point2) as Point,
         segment,
-        visible
+        visible,
+        color
       )
     );
     return this;
   }
 
   /**
-   * Adds to the construction a circle
+   * Adds a circle defined by its center and a point on its edge
    * @param name The name by which to access this circle
    * @param center The point that defines the center of this circle
    * @param edge A point on the edge of this circle, defining its radius
    * @param visible Whether or not to draw this circle
+   * @param color The color to draw this circle with
    * @chainable
    */
   addCircle(
     name: String,
     center: String,
     edge: String,
-    visible: boolean
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
   ): Construction {
-    this.circs.setValue(
+    this.objects.setValue(
       name,
       new Circle(
         this.p5,
-        this.pts.getValue(center),
-        this.pts.getValue(edge),
-        visible
+        this.objects.getValue(center) as Point,
+        this.objects.getValue(edge) as Point,
+        visible,
+        color
       )
     );
     return this;
   }
 
-  // TODO refactor all these addBlaIntersectionPoint to
-  //  addIntersectionPoint(Line|Circle,Line|Circle,toggle)
-
   /**
-   * Adds to the construction a point defined by the intersection of two lines
+   * Adds a point defined as the intersection of two lines
    * @param name The name by which to access this point
    * @param line1 The first line that passes through this point
    * @param line2 The second line that passes through this point
-   * @param visible Whether or not to draw this line
+   * @param visible Whether or not to draw this point
+   * @param color The color to draw this point with
    * @chainable
    */
   addLinesIntersectionPoint(
     name: String,
     line1: String,
     line2: String,
-    visible: boolean
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
   ): Construction {
-    this.pts.setValue(
+    this.objects.setValue(
       name,
       new LinesIntersectionPoint(
         this.p5,
-        this.lines.getValue(line1),
-        this.lines.getValue(line2),
-        visible
+        this.objects.getValue(line1) as Line,
+        this.objects.getValue(line2) as Line,
+        visible,
+        color
       )
     );
     return this;
   }
 
   /**
-   * Adds to the construction a point defined by the intersection between a
-   * line and a circle. If two such points exist, the decision of which one
+   * Adds a point defined as the intersection between a line and
+   * a circle. If two such points exist, the decision of which one
    * to add by this name is controlled by 'toggle'
    * @param name The name by which to access this point
    * @param line The line that passes through this point
    * @param circle The circle that passes through this point
    * @param toggle If 2 intersection points, decides which one to add
    * @param visible Whether or not to draw this point
+   * @param color The color to draw this point with
    * @chainable
    */
   addLineCircleIntersectionPoint(
@@ -422,29 +446,32 @@ export class Construction {
     line: String,
     circle: String,
     toggle: boolean,
-    visible: boolean
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
   ): Construction {
-    this.pts.setValue(
+    this.objects.setValue(
       name,
       new LineCircleIntersectionPoint(
         this.p5,
-        this.lines.getValue(line),
-        this.circs.getValue(circle),
+        this.objects.getValue(line) as Line,
+        this.objects.getValue(circle) as Circle,
         toggle,
-        visible
+        visible,
+        color
       )
     );
     return this;
   }
   /**
-   * Adds to the construction a point defined by the intersection between
-   * two circles. If two such points exist, the decision of which one
-   * to add by this name is controlled by 'toggle'
+   * Adds a point defined as the intersection between two circles.
+   * If two such points exist, the decision of which one to add
+   * by this name is controlled by 'toggle'
    * @param name The name by which to access this point
    * @param circle The first circle that passes through this point
    * @param circle The second circle that passes through this point
    * @param toggle If 2 intersection points, decides which one to add
    * @param visible Whether or not to draw this point
+   * @param color The color to draw this point with
    * @chainable
    */
   addCirclesIntersectionPoint(
@@ -452,167 +479,163 @@ export class Construction {
     circle1: String,
     circle2: String,
     toggle: boolean,
-    visible: boolean
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
   ): Construction {
-    this.pts.setValue(
+    this.objects.setValue(
       name,
       new CirclesIntersectionPoint(
         this.p5,
-        this.circs.getValue(circle1),
-        this.circs.getValue(circle2),
+        this.objects.getValue(circle1) as Circle,
+        this.objects.getValue(circle2) as Circle,
         toggle,
-        visible
+        visible,
+        color
       )
     );
     return this;
   }
 
   /**
-   *
+   * Adds a line defined as the perpindicular bisector to two points
    * @param name The name by which to access this point
    * @param point1 The first point of the two to bisect
    * @param point2 The second point of the two to bisect
    * @param visible Whether or not to draw this point
+   * @param color The color to draw this line with
    * @chainable
    */
   addPerpindicularBisector(
     name: String,
     point1: String,
     point2: String,
-    visible: boolean
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
   ): Construction {
-    return this.addCircle(
-      name + "c1",
-      point1,
-      point2,
-      this.intermediatesVisible
-    )
-      .addCircle(name + "c2", point2, point1, this.intermediatesVisible)
+    return this.addCircle(name + "#c1", point1, point2, false)
+      .addCircle(name + "#c2", point2, point1, false)
       .addCirclesIntersectionPoint(
-        name + "p1",
-        name + "c1",
-        name + "c2",
-        false,
-        this.intermediatesVisible
+        name + "#p1",
+        name + "#c1",
+        name + "#c2",
+        false
       )
       .addCirclesIntersectionPoint(
-        name + "p2",
-        name + "c1",
-        name + "c2",
-        true,
-        this.intermediatesVisible
+        name + "#p2",
+        name + "#c1",
+        name + "#c2",
+        true
       )
-      .addLine(name, name + "p1", name + "p2", false, visible);
+      .addLine(name, name + "#p1", name + "#p2", visible, false, color);
   }
 
+  /**
+   * Adds a point defined as the midpoint between two points
+   * @param name The name by which to access this point
+   * @param point1 The first point of the two to bisect
+   * @param point2 The second point of the two to bisect
+   * @param visible Whether or not to draw this point
+   * @param color The color to draw this point with
+   * @chainable
+   */
   addMidpoint(
     name: String,
     point1: String,
     point2: String,
-    visible: boolean
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
   ): Construction {
-    return this.addLine(
-      name + "l",
-      point1,
-      point2,
-      true,
-      this.intermediatesVisible
-    )
-      .addPerpindicularBisector(
-        name + "pb",
-        point1,
-        point2,
-        this.intermediatesVisible
-      )
-      .addLinesIntersectionPoint(name, name + "l", name + "pb", visible);
+    return this.addLine(name + "#l", point1, point2)
+      .addPerpindicularBisector(name + "#pb", point1, point2)
+      .addLinesIntersectionPoint(
+        name,
+        name + "#l",
+        name + "#pb",
+        visible,
+        color
+      );
   }
 
+  /**
+   * WIP due to needing pointOnLine
+   * Adds a line defined to be perpindicular to a line
+   * and through a point
+   * @param name The name by which to access this point
+   * @param visible Whether or not to draw this point
+   * @param color The color to draw this line with
+   * @chainable
+   */
   addErectedPerpindicular(
     name: String,
     point: String,
     line: String,
     pointOnLine: String,
-    visible: boolean,
-    intermediatesVisible: boolean
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
   ): Construction {
-    return this.addCircle(
-      name + "_c1",
-      point,
-      pointOnLine,
-      intermediatesVisible
-    )
-      .addLineCircleIntersectionPoint(
-        name + "_p1",
-        line,
-        name + "_c1",
-        false,
-        intermediatesVisible
-      )
-      .addLineCircleIntersectionPoint(
-        name + "_p2",
-        line,
-        name + "_c1",
-        true,
-        intermediatesVisible
-      )
-      .addCircle(name + "_c2", name + "_p1", name + "_p2", intermediatesVisible)
-      .addCircle(name + "_c3", name + "_p2", name + "_p1", intermediatesVisible)
+    return this.addCircle(name + "#c1", point, pointOnLine, false)
+      .addLineCircleIntersectionPoint(name + "#p1", line, name + "#c1", false)
+      .addLineCircleIntersectionPoint(name + "#p2", line, name + "#c1", true)
+      .addCircle(name + "#c2", name + "#p1", name + "#p2")
+      .addCircle(name + "#c3", name + "#p2", name + "#p1")
       .addCirclesIntersectionPoint(
-        name + "_p3",
-        name + "_c2",
-        name + "_c3",
-        false,
-        intermediatesVisible
+        name + "#p3",
+        name + "#c2",
+        name + "#c3",
+        false
       )
-      .addLine(name, name + "p3", point, false, visible);
+      .addLine(name, name + "#p3", point, visible, false, color);
   }
 
+  /**
+   * Adds a point defined as the circumcenter of three points
+   * @param name The name by which to access this point
+   * @param point1 The first point defining this point
+   * @param point2 The second point defining this point
+   * @param point3 The third point defining this point
+   * @param visible Whether or not to draw this point
+   * @param color The color to draw this point with
+   */
   addCircumcenter(
     name: String,
     point1: String,
     point2: String,
     point3: String,
-    visible: boolean,
-    intermediatesVisible: boolean
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
   ): Construction {
-    return this.addPerpindicularBisector(
-      name + "pb1",
-      point1,
-      point2,
-      intermediatesVisible
-    )
-      .addPerpindicularBisector(
-        name + "pb2",
-        point1,
-        point3,
-        intermediatesVisible
-      )
-      .addLinesIntersectionPoint(name, name + "pb1", name + "pb2", visible);
+    return this.addPerpindicularBisector(name + "#pb1", point1, point2)
+      .addPerpindicularBisector(name + "#pb2", point1, point3)
+      .addLinesIntersectionPoint(
+        name,
+        name + "#pb1",
+        name + "#pb2",
+        visible,
+        color
+      );
   }
 
   // TODO make this not suck
-  addAngleBisector(
+  /*addAngleBisector(
     name: String,
     point1: String,
     point2: String,
     point3: String,
-    segment: boolean,
-    visible: boolean
+    visible: boolean = false
   ): Construction {
     return this.addCircle(
-      name + "c1",
+      name + "#c1",
       point2,
-      point1,
-      this.intermediatesVisible
+      point1
     )
-      .addCircle(name + "c2", point2, point3, this.intermediatesVisible)
+      .addCircle(name + "#c1", point2, point1, false)
+      .addCircle(name + "#c2", point2, point3, false)
       .addCirclesIntersectionPoint(
-        name + "p1",
-        name + "c1",
-        name + "c2",
-        false,
-        this.intermediatesVisible
+        name + "#p1",
+        name + "#c1",
+        name + "#c2",
+        false
       )
-      .addLine(name, point2, name + "p1", segment, visible);
-  }
+      .addLine(name, point2, name + "#p1", segment, visible);
+  }*/
 }
