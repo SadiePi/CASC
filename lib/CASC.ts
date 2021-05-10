@@ -10,11 +10,10 @@ import * as Collections from "typescript-collections";
 
 export abstract class Point {
   private _vector: P5.Vector = null;
-
   constructor(public p5: P5, public visible: boolean, public color: p5.Color) {}
 
   draw() {
-    let p = this.getVector();
+    const p = this.getVector();
     if (p == null) return;
 
     this.p5.stroke(this.color);
@@ -50,14 +49,6 @@ class FreePoint extends Point {
   }
 }
 
-/**
- * A straight line through 2 points.
- * @param p5 The P5 object with which to associate this line
- * @param point1 The first point through which this line will pass
- * @param point2 The second point through which this line will pass
- * @param segment asdf
- * @param visible Whether or not to render this line
- */
 export class Line {
   constructor(
     public p5: P5,
@@ -68,8 +59,8 @@ export class Line {
     public color: p5.Color
   ) {}
   draw() {
-    let p1 = this.point1.getVector();
-    let p2 = this.point2.getVector();
+    const p1 = this.point1.getVector();
+    const p2 = this.point2.getVector();
     if (p1 == null || p2 == null) return;
 
     this.p5.stroke(this.color);
@@ -77,10 +68,10 @@ export class Line {
     if (this.segment) {
       this.p5.line(p1.x, p1.y, p2.x, p2.y);
     } else {
-      let dia_len = this.p5.createVector(this.p5.width, this.p5.height).mag();
-      let dir_v = P5.Vector.sub(p2, p1).setMag(dia_len);
-      let lp1 = P5.Vector.add(p1, dir_v);
-      let lp2 = P5.Vector.sub(p1, dir_v);
+      const dia_len = this.p5.createVector(this.p5.width, this.p5.height).mag();
+      const dir_v = P5.Vector.sub(p2, p1).setMag(dia_len);
+      const lp1 = P5.Vector.add(p1, dir_v);
+      const lp2 = P5.Vector.sub(p1, dir_v);
 
       this.p5.line(lp1.x, lp1.y, lp2.x, lp2.y);
     }
@@ -98,19 +89,18 @@ class LinesIntersectionPoint extends Point {
     super(p5, visible, color);
   }
   calcVector() {
-    let p1 = this.line1.point1.getVector();
-    let p2 = this.line1.point2.getVector();
-    let p3 = this.line2.point1.getVector();
-    let p4 = this.line2.point2.getVector();
-
+    const p1 = this.line1.point1.getVector();
+    const p2 = this.line1.point2.getVector();
+    const p3 = this.line2.point1.getVector();
+    const p4 = this.line2.point2.getVector();
     if (p1 == null || p2 == null || p3 == null || p4 == null) return null;
 
-    let den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+    const den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
     if (den === 0) return null;
-    let num1 = p1.x * p2.y - p1.y * p2.x;
-    let num2 = p3.x * p4.y - p3.y * p4.x;
-    let x = (num1 * (p3.x - p4.x) - (p1.x - p2.x) * num2) / den;
-    let y = (num1 * (p3.y - p4.y) - (p1.y - p2.y) * num2) / den;
+    const num1 = p1.x * p2.y - p1.y * p2.x;
+    const num2 = p3.x * p4.y - p3.y * p4.x;
+    const x = (num1 * (p3.x - p4.x) - (p1.x - p2.x) * num2) / den;
+    const y = (num1 * (p3.y - p4.y) - (p1.y - p2.y) * num2) / den;
     return this.p5.createVector(x, y);
   }
 }
@@ -147,14 +137,6 @@ class LinesIntersectionPoint extends Point {
   }
 }*/
 
-/**
- * A circle theoretically drawn by positioning a compass at 'center' and
- * opening it to 'edge'.
- * @param p5 The P5 object with which to associate this point
- * @param center The point that defines the center of this circle
- * @param edge A point on the edge of this circle, defining its radius
- * @param visible Whether or not to render this line
- */
 export class Circle {
   constructor(
     public p5: P5,
@@ -164,8 +146,8 @@ export class Circle {
     public color: p5.Color
   ) {}
   draw() {
-    let center = this.center.getVector();
-    let edge = this.edge.getVector();
+    const center = this.center.getVector();
+    const edge = this.edge.getVector();
     if (center == null || edge == null) return;
 
     this.p5.noFill();
@@ -174,18 +156,6 @@ export class Circle {
   }
 }
 
-/**
- * A point defined by the intersection of a line and a circle. If they don't
- * intersect, getVector() will return null. If they are tangent, it will
- * return that tangent point. If they intersect at 2 points, it will return
- * one of those points, decided by the value of 'toggle'.
- *
- * @param p5 The P5 object with which to associate this point
- * @param line The line whose intersection with 'circle' defines this point
- * @param circle The circle whose intersection with 'line' defines this point
- * @param toggle Whether or not to return the second of two intersections
- * @param visible Whether or not to render this point
- */
 class LineCircleIntersectionPoint extends Point {
   constructor(
     public p5: P5,
@@ -198,24 +168,24 @@ class LineCircleIntersectionPoint extends Point {
     super(p5, visible, color);
   }
   calcVector() {
-    let c = this.circle.center.getVector();
-    let e = this.circle.edge.getVector();
+    const c = this.circle.center.getVector();
+    const e = this.circle.edge.getVector();
     if (c == null || e == null) return null;
-    let r = P5.Vector.dist(e, c);
+    const r = P5.Vector.dist(e, c);
 
-    let p1 = P5.Vector.sub(this.line.point1.getVector(), c);
-    let p2 = P5.Vector.sub(this.line.point2.getVector(), c);
-    let d = P5.Vector.sub(p2, p1);
-    let drSq = d.magSq();
-    let det = p1.x * p2.y - p2.x * p1.y;
+    const p1 = P5.Vector.sub(this.line.point1.getVector(), c);
+    const p2 = P5.Vector.sub(this.line.point2.getVector(), c);
+    const d = P5.Vector.sub(p2, p1);
+    const drSq = d.magSq();
+    const det = p1.x * p2.y - p2.x * p1.y;
 
-    let discriminant = r * r * drSq - det * det;
+    const discriminant = r * r * drSq - det * det;
     if (discriminant < 0) return null;
     // We don't need to check for discriminant==0 because
     //  even if it is, the following will handle it just fine anyway
-    let discSqrt = this.p5.sqrt(discriminant);
-    let sgn = d.y < 0 ? -1 : 1;
-    let toggle = this.toggle ? -1 : 1;
+    const discSqrt = this.p5.sqrt(discriminant);
+    const sgn = d.y < 0 ? -1 : 1;
+    const toggle = this.toggle ? -1 : 1;
     return P5.Vector.add(
       this.p5.createVector(
         (det * d.y + toggle * sgn * d.x * discSqrt) / drSq,
@@ -251,26 +221,25 @@ class CirclesIntersectionPoint extends Point {
   }
 
   calcVector() {
-    let c1 = this.circle1.center.getVector();
-    let e1 = this.circle1.edge.getVector();
-    let c2 = this.circle2.center.getVector();
-    let e2 = this.circle2.edge.getVector();
+    const c1 = this.circle1.center.getVector();
+    const e1 = this.circle1.edge.getVector();
+    const c2 = this.circle2.center.getVector();
+    const e2 = this.circle2.edge.getVector();
     if (c1 == null || e1 == null || c2 == null || e2 == null) return null;
 
-    let r1 = P5.Vector.dist(c1, e1);
-    let r2 = P5.Vector.dist(c2, e2);
+    const r1 = P5.Vector.dist(c1, e1);
+    const r2 = P5.Vector.dist(c2, e2);
 
-    let d = P5.Vector.sub(c1, c2).mag();
-    let l = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
-    let hSq = r1 * r1 - l * l;
+    const d = P5.Vector.sub(c1, c2).mag();
+    const l = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
+    const hSq = r1 * r1 - l * l;
     if (hSq < 0) return null;
-    let h = this.p5.sqrt(hSq);
-    if (this.toggle) h = -h;
+    const h = this.p5.sqrt(hSq) * (this.toggle ? 1 : -1);
 
-    let ret = P5.Vector.sub(c2, c1)
+    const ret = P5.Vector.sub(c2, c1)
       .mult(l / d)
       .add(c1);
-    let mod = P5.Vector.sub(c2, c1).mult(h / d);
+    const mod = P5.Vector.sub(c2, c1).mult(h / d);
     mod.set(mod.y, -mod.x);
     return P5.Vector.add(ret, mod);
   }
@@ -291,10 +260,10 @@ export class Construction {
   ) {}
 
   draw() {
-    let objs = this.objects.values();
+    const objs = this.objects.values();
 
     for (let i = 0; i < objs.length; i++) {
-      let o = objs[i];
+      const o = objs[i];
       if (o instanceof Point) (o as Point).reset();
       if (this.intermediatesVisible || o.visible) o.draw();
     }
@@ -339,7 +308,20 @@ export class Construction {
   }
 
   /**
-   * Adds a straight line through 2 points
+   * Shorthand for addPoint
+   * @see addPoint
+   */
+  P(
+    name: String,
+    vector: P5.Vector | ((time: number) => P5.Vector),
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    return this.addPoint(name, vector, visible, color);
+  }
+
+  /**
+   * Adds a line defined by 2 points that it intersects
    * @param name The name by which to access this line
    * @param point1 The first point this line intersects with
    * @param point2 The second point this line intersects with
@@ -371,6 +353,21 @@ export class Construction {
   }
 
   /**
+   * Shorthand for Line
+   * @see Line
+   */
+  L(
+    name: String,
+    point1: String,
+    point2: String,
+    visible: boolean = false,
+    segment: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    return this.addLine(name, point1, point2, visible, segment, color);
+  }
+
+  /**
    * Adds a circle defined by its center and a point on its edge
    * @param name The name by which to access this circle
    * @param center The point that defines the center of this circle
@@ -397,6 +394,60 @@ export class Construction {
       )
     );
     return this;
+  }
+
+  /**
+   * Shorthand for addCircle
+   * @see addCircle
+   */
+  C(
+    name: String,
+    center: String,
+    edge: String,
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    return this.addCircle(name, center, edge, visible, color);
+  }
+
+  /**
+   * WIP gotta implement arcs first, this is just proof of concept
+   * Adds an arc defined by its center and 2 point on its edge.
+   * Draws counterclockwise around 'center' from 'point1' to 'point2'
+   * at the center of the circle it's a part of
+   * @param name The name by which to access this arc
+   * @param center The point that defines the center of this arc
+   * @param edge1 The first point on this arc
+   * @param edge2 The second point on this arc
+   * @param visible Whether or not to draw this arc
+   * @param color The color to draw this arc with
+   */
+  addArc(
+    name: String,
+    center: String,
+    edge1: String,
+    edge2: String,
+    toggle: boolean,
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    return this;
+  }
+
+  /**
+   * Shorthand for addArc
+   * @see Construction.addArc
+   */
+  A(
+    name: String,
+    center: String,
+    edge1: String,
+    edge2: String,
+    toggle: boolean,
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    return this.addArc(name, center, edge1, edge2, toggle, visible, color);
   }
 
   /**
@@ -474,6 +525,21 @@ export class Construction {
   }
 
   /**
+   * Shorthand for addIntersection
+   * @see addIntersection
+   */
+  I(
+    name: String,
+    object1: String,
+    object2: String,
+    toggle: boolean = false,
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    return this.addIntersection(name, object1, object2, toggle, visible, color);
+  }
+
+  /**
    * Adds a line defined by the perpindicular bisector to two points
    * @param name The name by which to access this line
    * @param point1 The first point of the two to bisect
@@ -489,11 +555,21 @@ export class Construction {
     visible: boolean = false,
     color: p5.Color = this.defaultColor
   ): Construction {
-    return this.addCircle(name + "#c1", point1, point2, false)
-      .addCircle(name + "#c2", point2, point1, false)
-      .addIntersection(name + "#p1", name + "#c1", name + "#c2", false)
-      .addIntersection(name + "#p2", name + "#c1", name + "#c2", true)
-      .addLine(name, name + "#p1", name + "#p2", visible, false, color);
+    return this.C(name + "#c1", point1, point2, false)
+      .C(name + "#c2", point2, point1, false)
+      .I(name + "#p1", name + "#c1", name + "#c2", false)
+      .I(name + "#p2", name + "#c1", name + "#c2", true)
+      .L(name, name + "#p1", name + "#p2", visible, false, color);
+  }
+
+  PB(
+    name: String,
+    point1: String,
+    point2: String,
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    return this.addPerpindicularBisector(name, point1, point2, visible, color);
   }
 
   /**
@@ -512,9 +588,23 @@ export class Construction {
     visible: boolean = false,
     color: p5.Color = this.defaultColor
   ): Construction {
-    return this.addLine(name + "#l", point1, point2)
-      .addPerpindicularBisector(name + "#pb", point1, point2)
-      .addIntersection(name, name + "#l", name + "#pb", visible, false, color);
+    return this.L(name + "#l", point1, point2)
+      .PB(name + "#pb", point1, point2)
+      .I(name, name + "#l", name + "#pb", visible, false, color);
+  }
+
+  /**
+   * Shorthand for addMidpoint
+   * @see addMidpoint
+   */
+  M(
+    name: String,
+    point1: String,
+    point2: String,
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    return this.addMidpoint(name, point1, point2, visible, color);
   }
 
   /**
@@ -534,13 +624,13 @@ export class Construction {
     visible: boolean = false,
     color: p5.Color = this.defaultColor
   ): Construction {
-    return this.addCircle(name + "#c1", point, pointOnLine, false)
-      .addIntersection(name + "#p1", line, name + "#c1", false)
-      .addIntersection(name + "#p2", line, name + "#c1", true)
-      .addCircle(name + "#c2", name + "#p1", name + "#p2")
-      .addCircle(name + "#c3", name + "#p2", name + "#p1")
-      .addIntersection(name + "#p3", name + "#c2", name + "#c3", false)
-      .addLine(name, name + "#p3", point, visible, false, color);
+    return this.C(name + "#c1", point, pointOnLine, false)
+      .I(name + "#p1", line, name + "#c1", false)
+      .I(name + "#p2", line, name + "#c1", true)
+      .C(name + "#c2", name + "#p1", name + "#p2")
+      .C(name + "#c3", name + "#p2", name + "#p1")
+      .I(name + "#p3", name + "#c2", name + "#c3", false)
+      .L(name, name + "#p3", point, visible, false, color);
   }
 
   /**
@@ -560,16 +650,24 @@ export class Construction {
     visible: boolean = false,
     color: p5.Color = this.defaultColor
   ): Construction {
-    return this.addPerpindicularBisector(name + "#pb1", point1, point2)
-      .addPerpindicularBisector(name + "#pb2", point1, point3)
-      .addIntersection(
-        name,
-        name + "#pb1",
-        name + "#pb2",
-        visible,
-        false,
-        color
-      );
+    return this.PB(name + "#pb1", point1, point2)
+      .PB(name + "#pb2", point1, point3)
+      .I(name, name + "#pb1", name + "#pb2", visible, false, color);
+  }
+
+  /**
+   * Shorthand for addCircumcenter
+   * @see addCircumcenter
+   */
+  CC(
+    name: String,
+    point1: String,
+    point2: String,
+    point3: String,
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    return this.addCircumcenter(name, point1, point2, point3, visible, color);
   }
 
   /**
@@ -589,14 +687,44 @@ export class Construction {
     visible: boolean = false,
     color: p5.Color = this.defaultColor
   ): Construction {
-    return this.addCircumcenter(
+    return this.CC(name + "#cc", point1, point2, point3, false).C(
+      name + "#c",
+      name + "#cc",
+      point1,
+      visible,
+      color
+    );
+  }
+
+  /**
+   * WIP gotta implement arcs first, this is just a proof of concept
+   * Adds an arc defined by its 2 endpoints and any third point through it
+   * @param name The name by which to access this arc
+   * @param point1 The first endpoint of this arc
+   * @param point2 A point through this arc
+   * @param point3 The second endpoint of this arc
+   * @param visible Whether or not to draw this arc
+   * @param color The color to draw this arc with
+   */
+  addArcFromEdgePoints(
+    name: String,
+    point1: String,
+    point2: String,
+    point3: String,
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    let toggle = false; // TODO figure out toggle from point2
+
+    return this.CC(name + "#cc", point1, point2, point3, false).A(
+      name,
       name + "#cc",
       point1,
       point2,
-      point3,
-      false,
+      toggle,
+      visible,
       color
-    ).addCircle(name + "#c", name + "#cc", point1, visible, color);
+    );
   }
 
   // TODO make this not suck
