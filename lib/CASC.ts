@@ -52,7 +52,6 @@ class FreePoint extends Point {
 
 /**
  * A straight line through 2 points.
- *
  * @param p5 The P5 object with which to associate this line
  * @param point1 The first point through which this line will pass
  * @param point2 The second point through which this line will pass
@@ -117,7 +116,7 @@ class LinesIntersectionPoint extends Point {
 }
 
 // TODO make this not suck
-class Arc {
+/*class Arc {
   constructor(
     public p5: P5,
     public center: Point,
@@ -146,12 +145,11 @@ class Arc {
     this.p5.fill(this.color);
     this.p5.arc(c.x, c.y, 2 * r, 2 * r, theta1, theta2);
   }
-}
+}*/
 
 /**
  * A circle theoretically drawn by positioning a compass at 'center' and
  * opening it to 'edge'.
- *
  * @param p5 The P5 object with which to associate this point
  * @param center The point that defines the center of this circle
  * @param edge A point on the edge of this circle, defining its radius
@@ -265,7 +263,7 @@ class CirclesIntersectionPoint extends Point {
     let d = P5.Vector.sub(c1, c2).mag();
     let l = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
     let hSq = r1 * r1 - l * l;
-    if (hSq < -0.0001) return null;
+    if (hSq < 0) return null;
     let h = this.p5.sqrt(hSq);
     if (this.toggle) h = -h;
 
@@ -279,16 +277,17 @@ class CirclesIntersectionPoint extends Point {
 }
 
 /**
- * A compass and straightedge construction
+ * A compass and straightedge construction. Contains many methods for
+ * adding complex constructions in a single call. Pull requests for more
+ * constructions welcome!
  */
 export class Construction {
-  // TODO refactor to Collections.Dictionary<String, Point|Line|Circle>()
   private objects = new Collections.Dictionary<String, Point | Line | Circle>();
 
   constructor(
     public p5: P5,
-    public defaultColor: p5.Color = p5.color("white"),
-    public intermediatesVisible: boolean = false
+    public intermediatesVisible: boolean = false,
+    public defaultColor: p5.Color = p5.color("white")
   ) {}
 
   draw() {
@@ -320,7 +319,7 @@ export class Construction {
    * Circles, and will be computed automatically based on the vectors
    * of their relevant points.
    *
-   * If a point is defined in such a way that it doesn't exist (e.g. as
+   * If a point is defined in such a way that it doesn't exist (such as
    * the intersection of two parallel lines), neither the point nor any
    * further constructions based on the point will be drawn.
    * @param name The name by which to access this point
@@ -340,11 +339,11 @@ export class Construction {
   }
 
   /**
-   * Adds a straight, infinite line through 2 points
+   * Adds a straight line through 2 points
    * @param name The name by which to access this line
    * @param point1 The first point this line intersects with
    * @param point2 The second point this line intersects with
-   * @param segment Whether or not to draw this line as a segement ending at each of its defining points
+   * @param segment Whether or not to draw this line as a segement
    * @param visible Whether or not to draw this line
    * @param color The color to draw this line with
    * @chainable
@@ -401,107 +400,85 @@ export class Construction {
   }
 
   /**
-   * Adds a point defined as the intersection of two lines
+   * Adds a point defined by the intersection of the two given
+   * objects. If two such points exist, the decision of which one
+   * to add by this name is controlled by 'toggle'.
    * @param name The name by which to access this point
-   * @param line1 The first line that passes through this point
-   * @param line2 The second line that passes through this point
+   * @param object1 The first object that passes through this point
+   * @param object2 The second object that passes through this point
+   * @param toggle If 2 intersection points, decides which one to add
    * @param visible Whether or not to draw this point
    * @param color The color to draw this point with
-   * @chainable
    */
-  addLinesIntersectionPoint(
+  addIntersection(
     name: String,
-    line1: String,
-    line2: String,
+    object1: String,
+    object2: String,
+    toggle: boolean = false,
     visible: boolean = false,
     color: p5.Color = this.defaultColor
   ): Construction {
-    this.objects.setValue(
-      name,
-      new LinesIntersectionPoint(
-        this.p5,
-        this.objects.getValue(line1) as Line,
-        this.objects.getValue(line2) as Line,
-        visible,
-        color
-      )
-    );
+    const o1 = this.objects.getValue(object1);
+    const o2 = this.objects.getValue(object2);
+
+    if (o1 instanceof Line && o2 instanceof Line)
+      this.objects.setValue(
+        name,
+        new LinesIntersectionPoint(
+          this.p5,
+          o1 as Line,
+          o2 as Line,
+          visible,
+          color
+        )
+      );
+    else if (o1 instanceof Line && o2 instanceof Circle)
+      this.objects.setValue(
+        name,
+        new LineCircleIntersectionPoint(
+          this.p5,
+          o1 as Line,
+          o2 as Circle,
+          toggle,
+          visible,
+          color
+        )
+      );
+    else if (o1 instanceof Circle && o2 instanceof Line)
+      this.objects.setValue(
+        name,
+        new LineCircleIntersectionPoint(
+          this.p5,
+          o2 as Line,
+          o1 as Circle,
+          toggle,
+          visible,
+          color
+        )
+      );
+    else if (o1 instanceof Circle && o2 instanceof Circle)
+      this.objects.setValue(
+        name,
+        new CirclesIntersectionPoint(
+          this.p5,
+          o1 as Circle,
+          o2 as Circle,
+          toggle,
+          visible,
+          color
+        )
+      );
+    else console.error("Cannot add intersection involving Point");
+
     return this;
   }
 
   /**
-   * Adds a point defined as the intersection between a line and
-   * a circle. If two such points exist, the decision of which one
-   * to add by this name is controlled by 'toggle'
-   * @param name The name by which to access this point
-   * @param line The line that passes through this point
-   * @param circle The circle that passes through this point
-   * @param toggle If 2 intersection points, decides which one to add
-   * @param visible Whether or not to draw this point
-   * @param color The color to draw this point with
-   * @chainable
-   */
-  addLineCircleIntersectionPoint(
-    name: String,
-    line: String,
-    circle: String,
-    toggle: boolean,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    this.objects.setValue(
-      name,
-      new LineCircleIntersectionPoint(
-        this.p5,
-        this.objects.getValue(line) as Line,
-        this.objects.getValue(circle) as Circle,
-        toggle,
-        visible,
-        color
-      )
-    );
-    return this;
-  }
-  /**
-   * Adds a point defined as the intersection between two circles.
-   * If two such points exist, the decision of which one to add
-   * by this name is controlled by 'toggle'
-   * @param name The name by which to access this point
-   * @param circle The first circle that passes through this point
-   * @param circle The second circle that passes through this point
-   * @param toggle If 2 intersection points, decides which one to add
-   * @param visible Whether or not to draw this point
-   * @param color The color to draw this point with
-   * @chainable
-   */
-  addCirclesIntersectionPoint(
-    name: String,
-    circle1: String,
-    circle2: String,
-    toggle: boolean,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    this.objects.setValue(
-      name,
-      new CirclesIntersectionPoint(
-        this.p5,
-        this.objects.getValue(circle1) as Circle,
-        this.objects.getValue(circle2) as Circle,
-        toggle,
-        visible,
-        color
-      )
-    );
-    return this;
-  }
-
-  /**
-   * Adds a line defined as the perpindicular bisector to two points
-   * @param name The name by which to access this point
+   * Adds a line defined by the perpindicular bisector to two points
+   * @param name The name by which to access this line
    * @param point1 The first point of the two to bisect
    * @param point2 The second point of the two to bisect
-   * @param visible Whether or not to draw this point
+   * @param visible Whether or not to draw this line
    * @param color The color to draw this line with
    * @chainable
    */
@@ -514,18 +491,8 @@ export class Construction {
   ): Construction {
     return this.addCircle(name + "#c1", point1, point2, false)
       .addCircle(name + "#c2", point2, point1, false)
-      .addCirclesIntersectionPoint(
-        name + "#p1",
-        name + "#c1",
-        name + "#c2",
-        false
-      )
-      .addCirclesIntersectionPoint(
-        name + "#p2",
-        name + "#c1",
-        name + "#c2",
-        true
-      )
+      .addIntersection(name + "#p1", name + "#c1", name + "#c2", false)
+      .addIntersection(name + "#p2", name + "#c1", name + "#c2", true)
       .addLine(name, name + "#p1", name + "#p2", visible, false, color);
   }
 
@@ -547,13 +514,7 @@ export class Construction {
   ): Construction {
     return this.addLine(name + "#l", point1, point2)
       .addPerpindicularBisector(name + "#pb", point1, point2)
-      .addLinesIntersectionPoint(
-        name,
-        name + "#l",
-        name + "#pb",
-        visible,
-        color
-      );
+      .addIntersection(name, name + "#l", name + "#pb", visible, false, color);
   }
 
   /**
@@ -574,16 +535,11 @@ export class Construction {
     color: p5.Color = this.defaultColor
   ): Construction {
     return this.addCircle(name + "#c1", point, pointOnLine, false)
-      .addLineCircleIntersectionPoint(name + "#p1", line, name + "#c1", false)
-      .addLineCircleIntersectionPoint(name + "#p2", line, name + "#c1", true)
+      .addIntersection(name + "#p1", line, name + "#c1", false)
+      .addIntersection(name + "#p2", line, name + "#c1", true)
       .addCircle(name + "#c2", name + "#p1", name + "#p2")
       .addCircle(name + "#c3", name + "#p2", name + "#p1")
-      .addCirclesIntersectionPoint(
-        name + "#p3",
-        name + "#c2",
-        name + "#c3",
-        false
-      )
+      .addIntersection(name + "#p3", name + "#c2", name + "#c3", false)
       .addLine(name, name + "#p3", point, visible, false, color);
   }
 
@@ -606,13 +562,29 @@ export class Construction {
   ): Construction {
     return this.addPerpindicularBisector(name + "#pb1", point1, point2)
       .addPerpindicularBisector(name + "#pb2", point1, point3)
-      .addLinesIntersectionPoint(
+      .addIntersection(
         name,
         name + "#pb1",
         name + "#pb2",
         visible,
+        false,
         color
       );
+  }
+
+  addCircleFromEdgePoints(
+    name: String,
+    point1: String,
+    point2: String,
+    point3: String,
+    visible: boolean = false,
+    color: p5.Color = this.defaultColor
+  ): Construction {
+    return this.addCircumcenter(name + "#cc", point1, point2, point3).addCircle(
+      name + "#c",
+      name + "#cc",
+      point1
+    );
   }
 
   // TODO make this not suck
