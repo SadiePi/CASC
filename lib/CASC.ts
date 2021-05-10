@@ -572,6 +572,15 @@ export class Construction {
       );
   }
 
+  /**
+   * Adds a circle defined by 3 points on its edge
+   * @param name The name by which to access this circle
+   * @param point1 The first point on the circle's edge
+   * @param point2 The second point on the circle's edge
+   * @param point3 The third point on the circle's edge
+   * @param visible Whether or not to draw this circle
+   * @param color The color to draw this circle with
+   */
   addCircleFromEdgePoints(
     name: String,
     point1: String,
@@ -580,11 +589,14 @@ export class Construction {
     visible: boolean = false,
     color: p5.Color = this.defaultColor
   ): Construction {
-    return this.addCircumcenter(name + "#cc", point1, point2, point3).addCircle(
-      name + "#c",
+    return this.addCircumcenter(
       name + "#cc",
-      point1
-    );
+      point1,
+      point2,
+      point3,
+      false,
+      color
+    ).addCircle(name + "#c", name + "#cc", point1, visible, color);
   }
 
   // TODO make this not suck
