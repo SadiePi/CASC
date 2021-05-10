@@ -297,7 +297,7 @@ export class Construction {
    * @param color The color to draw this point with
    * @chainable
    */
-  addPoint(
+  point(
     name: String,
     vector: P5.Vector | ((time: number) => P5.Vector),
     visible: boolean = false,
@@ -306,19 +306,7 @@ export class Construction {
     this.objects.setValue(name, new FreePoint(this.p5, vector, visible, color));
     return this;
   }
-
-  /**
-   * Shorthand for addPoint
-   * @see addPoint
-   */
-  P(
-    name: String,
-    vector: P5.Vector | ((time: number) => P5.Vector),
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.addPoint(name, vector, visible, color);
-  }
+  public readonly P = this.point;
 
   /**
    * Adds a line defined by 2 points that it intersects
@@ -330,7 +318,7 @@ export class Construction {
    * @param color The color to draw this line with
    * @chainable
    */
-  addLine(
+  line(
     name: String,
     point1: String,
     point2: String,
@@ -351,21 +339,7 @@ export class Construction {
     );
     return this;
   }
-
-  /**
-   * Shorthand for Line
-   * @see Line
-   */
-  L(
-    name: String,
-    point1: String,
-    point2: String,
-    visible: boolean = false,
-    segment: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.addLine(name, point1, point2, visible, segment, color);
-  }
+  public readonly L = this.line;
 
   /**
    * Adds a circle defined by its center and a point on its edge
@@ -376,7 +350,7 @@ export class Construction {
    * @param color The color to draw this circle with
    * @chainable
    */
-  addCircle(
+  circle(
     name: String,
     center: String,
     edge: String,
@@ -395,20 +369,7 @@ export class Construction {
     );
     return this;
   }
-
-  /**
-   * Shorthand for addCircle
-   * @see addCircle
-   */
-  C(
-    name: String,
-    center: String,
-    edge: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.addCircle(name, center, edge, visible, color);
-  }
+  public readonly C = this.circle;
 
   /**
    * WIP gotta implement arcs first, this is just proof of concept
@@ -422,7 +383,7 @@ export class Construction {
    * @param visible Whether or not to draw this arc
    * @param color The color to draw this arc with
    */
-  addArc(
+  arc(
     name: String,
     center: String,
     edge1: String,
@@ -433,22 +394,7 @@ export class Construction {
   ): Construction {
     return this;
   }
-
-  /**
-   * Shorthand for addArc
-   * @see Construction.addArc
-   */
-  A(
-    name: String,
-    center: String,
-    edge1: String,
-    edge2: String,
-    toggle: boolean,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.addArc(name, center, edge1, edge2, toggle, visible, color);
-  }
+  public readonly A = this.arc;
 
   /**
    * Adds a point defined by the intersection of the two given
@@ -461,7 +407,7 @@ export class Construction {
    * @param visible Whether or not to draw this point
    * @param color The color to draw this point with
    */
-  addIntersection(
+  intersection(
     name: String,
     object1: String,
     object2: String,
@@ -523,21 +469,7 @@ export class Construction {
 
     return this;
   }
-
-  /**
-   * Shorthand for addIntersection
-   * @see addIntersection
-   */
-  I(
-    name: String,
-    object1: String,
-    object2: String,
-    toggle: boolean = false,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.addIntersection(name, object1, object2, toggle, visible, color);
-  }
+  public readonly I = this.intersection;
 
   /**
    * Adds a line defined by the perpindicular bisector to two points
@@ -548,7 +480,7 @@ export class Construction {
    * @param color The color to draw this line with
    * @chainable
    */
-  addPerpindicularBisector(
+  perpindicularBisector(
     name: String,
     point1: String,
     point2: String,
@@ -561,16 +493,7 @@ export class Construction {
       .I(name + "#p2", name + "#c1", name + "#c2", true)
       .L(name, name + "#p1", name + "#p2", visible, false, color);
   }
-
-  PB(
-    name: String,
-    point1: String,
-    point2: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.addPerpindicularBisector(name, point1, point2, visible, color);
-  }
+  public readonly PB = this.perpindicularBisector;
 
   /**
    * Adds a point defined as the midpoint between two points
@@ -581,7 +504,7 @@ export class Construction {
    * @param color The color to draw this point with
    * @chainable
    */
-  addMidpoint(
+  midpoint(
     name: String,
     point1: String,
     point2: String,
@@ -592,20 +515,7 @@ export class Construction {
       .PB(name + "#pb", point1, point2)
       .I(name, name + "#l", name + "#pb", visible, false, color);
   }
-
-  /**
-   * Shorthand for addMidpoint
-   * @see addMidpoint
-   */
-  M(
-    name: String,
-    point1: String,
-    point2: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.addMidpoint(name, point1, point2, visible, color);
-  }
+  public readonly M = this.midpoint;
 
   /**
    * WIP due to needing pointOnLine
@@ -616,7 +526,7 @@ export class Construction {
    * @param color The color to draw this line with
    * @chainable
    */
-  addErectedPerpindicular(
+  erectedPerpindicular(
     name: String,
     point: String,
     line: String,
@@ -632,6 +542,7 @@ export class Construction {
       .I(name + "#p3", name + "#c2", name + "#c3", false)
       .L(name, name + "#p3", point, visible, false, color);
   }
+  public readonly EP = this.erectedPerpindicular;
 
   /**
    * Adds a point defined as the circumcenter of three points
@@ -642,7 +553,7 @@ export class Construction {
    * @param visible Whether or not to draw this point
    * @param color The color to draw this point with
    */
-  addCircumcenter(
+  circumcenter(
     name: String,
     point1: String,
     point2: String,
@@ -654,21 +565,7 @@ export class Construction {
       .PB(name + "#pb2", point1, point3)
       .I(name, name + "#pb1", name + "#pb2", visible, false, color);
   }
-
-  /**
-   * Shorthand for addCircumcenter
-   * @see addCircumcenter
-   */
-  CC(
-    name: String,
-    point1: String,
-    point2: String,
-    point3: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.addCircumcenter(name, point1, point2, point3, visible, color);
-  }
+  public readonly CC = this.circumcenter;
 
   /**
    * Adds a circle defined by 3 points on its edge
@@ -679,7 +576,7 @@ export class Construction {
    * @param visible Whether or not to draw this circle
    * @param color The color to draw this circle with
    */
-  addCircleFromEdgePoints(
+  circleThrough3EdgePoints(
     name: String,
     point1: String,
     point2: String,
@@ -695,6 +592,7 @@ export class Construction {
       color
     );
   }
+  public readonly C3 = this.circleThrough3EdgePoints;
 
   /**
    * WIP gotta implement arcs first, this is just a proof of concept
@@ -706,7 +604,7 @@ export class Construction {
    * @param visible Whether or not to draw this arc
    * @param color The color to draw this arc with
    */
-  addArcFromEdgePoints(
+  arcThrough3EdgePoints(
     name: String,
     point1: String,
     point2: String,
@@ -726,9 +624,10 @@ export class Construction {
       color
     );
   }
+  public readonly A3 = this.arcThrough3EdgePoints;
 
   // TODO make this not suck
-  /*addAngleBisector(
+  /*angleBisector(
     name: String,
     point1: String,
     point2: String,
@@ -740,14 +639,14 @@ export class Construction {
       point2,
       point1
     )
-      .addCircle(name + "#c1", point2, point1, false)
-      .addCircle(name + "#c2", point2, point3, false)
-      .addCirclesIntersectionPoint(
+      .C(name + "#c1", point2, point1, false)
+      .C(name + "#c2", point2, point3, false)
+      .I(
         name + "#p1",
         name + "#c1",
         name + "#c2",
         false
       )
-      .addLine(name, point2, name + "#p1", segment, visible);
+      .L(name, point2, name + "#p1", segment, visible);
   }*/
 }
