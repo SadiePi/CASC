@@ -251,6 +251,7 @@ class CirclesIntersectionPoint extends Point {
  * constructions welcome!
  */
 export class Construction {
+  // TODO: redo as Record<string, Point | Line | Circle>
   private objects = new Collections.Dictionary<String, Point | Line | Circle>();
 
   constructor(
