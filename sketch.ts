@@ -68,7 +68,7 @@ const sketch = (p5: P5) => {
     mouse.set(p5.mouseX - p5.width / 2, p5.mouseY - p5.height / 2);
 
     // Note that the construction is only being defined once, and all the drawing is based off that
-    C.draw();
+    //C.draw();
     hexagon.draw();
     //nepaleseFlag.draw();
     //heptadecagon.draw();
