@@ -252,7 +252,7 @@ class CirclesIntersectionPoint extends Point {
  */
 export class Construction {
   // TODO: redo as Record<string, Point | Line | Circle>
-  private objects = new Collections.Dictionary<String, Point | Line | Circle>();
+  private objects = new Collections.Dictionary<string, Point | Line | Circle>();
 
   constructor(
     public p5: P5,
@@ -270,11 +270,11 @@ export class Construction {
     }
   }
 
-  getObject(name: String): Point | Line | Circle {
+  getObject(name: string): Point | Line | Circle {
     return this.objects.getValue(name);
   }
 
-  addObject(name: String, object: Point | Line | Circle): Construction {
+  addObject(name: string, object: Point | Line | Circle): Construction {
     this.objects.setValue(name, object);
     return this;
   }
@@ -298,13 +298,21 @@ export class Construction {
    * @param color The color to draw this point with
    * @chainable
    */
-  point(
-    name: String,
-    vector: P5.Vector | ((time: number) => P5.Vector),
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    this.objects.setValue(name, new FreePoint(this.p5, vector, visible, color));
+  point(params: {
+    name: string;
+    vector: P5.Vector | ((time: number) => P5.Vector);
+    visible?: boolean;
+    color?: p5.Color;
+  }): Construction {
+    this.objects.setValue(
+      params.name,
+      new FreePoint(
+        this.p5,
+        params.vector,
+        params.visible ?? false,
+        params.color ?? this.defaultColor
+      )
+    );
     return this;
   }
   public readonly P = this.point;
@@ -319,23 +327,23 @@ export class Construction {
    * @param color The color to draw this line with
    * @chainable
    */
-  line(
-    name: String,
-    point1: String,
-    point2: String,
-    visible: boolean = false,
-    segment: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
+  line(params: {
+    name: string;
+    point1: string;
+    point2: string;
+    visible?: boolean;
+    segment?: boolean;
+    color?: p5.Color;
+  }): Construction {
     this.objects.setValue(
-      name,
+      params.name,
       new Line(
         this.p5,
-        this.objects.getValue(point1) as Point,
-        this.objects.getValue(point2) as Point,
-        segment,
-        visible,
-        color
+        this.objects.getValue(params.point1) as Point,
+        this.objects.getValue(params.point2) as Point,
+        params.segment ?? false,
+        params.visible ?? false,
+        params.color ?? this.defaultColor
       )
     );
     return this;
@@ -351,21 +359,21 @@ export class Construction {
    * @param color The color to draw this circle with
    * @chainable
    */
-  circle(
-    name: String,
-    center: String,
-    edge: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
+  circle(params: {
+    name: string;
+    center: string;
+    edge: string;
+    visible?: boolean;
+    color?: p5.Color;
+  }): Construction {
     this.objects.setValue(
-      name,
+      params.name,
       new Circle(
         this.p5,
-        this.objects.getValue(center) as Point,
-        this.objects.getValue(edge) as Point,
-        visible,
-        color
+        this.objects.getValue(params.center) as Point,
+        this.objects.getValue(params.edge) as Point,
+        params.visible ?? false,
+        params.color ?? this.defaultColor
       )
     );
     return this;
@@ -384,15 +392,15 @@ export class Construction {
    * @param visible Whether or not to draw this arc
    * @param color The color to draw this arc with
    */
-  arc(
-    name: String,
-    center: String,
-    edge1: String,
-    edge2: String,
-    toggle: boolean,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
+  arc(params: {
+    name: string;
+    center: string;
+    edge1: string;
+    edge2: string;
+    toggle?: boolean;
+    visible?: boolean;
+    color?: p5.Color;
+  }): Construction {
     return this;
   }
   public readonly A = this.arc;
@@ -408,62 +416,62 @@ export class Construction {
    * @param visible Whether or not to draw this point
    * @param color The color to draw this point with
    */
-  intersection(
-    name: String,
-    object1: String,
-    object2: String,
-    toggle: boolean = false,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    const o1 = this.objects.getValue(object1);
-    const o2 = this.objects.getValue(object2);
+  intersection(params: {
+    name: string;
+    object1: string;
+    object2: string;
+    toggle?: boolean;
+    visible?: boolean;
+    color?: p5.Color;
+  }): Construction {
+    const o1 = this.objects.getValue(params.object1);
+    const o2 = this.objects.getValue(params.object2);
 
     if (o1 instanceof Line && o2 instanceof Line)
       this.objects.setValue(
-        name,
+        params.name,
         new LinesIntersectionPoint(
           this.p5,
           o1 as Line,
           o2 as Line,
-          visible,
-          color
+          params.visible ?? false,
+          params.color ?? this.defaultColor
         )
       );
     else if (o1 instanceof Line && o2 instanceof Circle)
       this.objects.setValue(
-        name,
+        params.name,
         new LineCircleIntersectionPoint(
           this.p5,
           o1 as Line,
           o2 as Circle,
-          toggle,
-          visible,
-          color
+          params.toggle ?? false,
+          params.visible ?? false,
+          params.color ?? this.defaultColor
         )
       );
     else if (o1 instanceof Circle && o2 instanceof Line)
       this.objects.setValue(
-        name,
+        params.name,
         new LineCircleIntersectionPoint(
           this.p5,
           o2 as Line,
           o1 as Circle,
-          toggle,
-          visible,
-          color
+          params.toggle ?? false,
+          params.visible ?? false,
+          params.color ?? this.defaultColor
         )
       );
     else if (o1 instanceof Circle && o2 instanceof Circle)
       this.objects.setValue(
-        name,
+        params.name,
         new CirclesIntersectionPoint(
           this.p5,
           o1 as Circle,
           o2 as Circle,
-          toggle,
-          visible,
-          color
+          params.toggle ?? false,
+          params.visible ?? false,
+          params.color ?? this.defaultColor
         )
       );
     else console.error("Cannot add intersection involving Point");
@@ -481,18 +489,44 @@ export class Construction {
    * @param color The color to draw this line with
    * @chainable
    */
-  perpindicularBisector(
-    name: String,
-    point1: String,
-    point2: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.C(name + "#c1", point1, point2, false)
-      .C(name + "#c2", point2, point1, false)
-      .I(name + "#p1", name + "#c1", name + "#c2", false)
-      .I(name + "#p2", name + "#c1", name + "#c2", true)
-      .L(name, name + "#p1", name + "#p2", visible, false, color);
+  perpindicularBisector(params: {
+    name: string;
+    point1: string;
+    point2: string;
+    segment?: boolean;
+    visible?: boolean;
+    color?: p5.Color;
+  }): Construction {
+    return this.C({
+      name: params.name + "#c1",
+      center: params.point1,
+      edge: params.point2
+    })
+      .C({
+        name: params.name + "#c2",
+        center: params.point2,
+        edge: params.point1
+      })
+      .I({
+        name: params.name + "#p1",
+        object1: params.name + "#c1",
+        object2: params.name + "#c2",
+        toggle: false
+      })
+      .I({
+        name: params.name + "#p2",
+        object1: params.name + "#c1",
+        object2: params.name + "#c2",
+        toggle: true
+      })
+      .L({
+        name: params.name,
+        point1: params.name + "#p1",
+        point2: params.name + "#p2",
+        visible: params.visible,
+        segment: params.segment,
+        color: params.color
+      });
   }
   public readonly PB = this.perpindicularBisector;
 
@@ -505,16 +539,30 @@ export class Construction {
    * @param color The color to draw this point with
    * @chainable
    */
-  midpoint(
-    name: String,
-    point1: String,
-    point2: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.L(name + "#l", point1, point2)
-      .PB(name + "#pb", point1, point2)
-      .I(name, name + "#l", name + "#pb", visible, false, color);
+  midpoint(params: {
+    name: string;
+    point1: string;
+    point2: string;
+    visible?: boolean;
+    color?: p5.Color;
+  }): Construction {
+    return this.L({
+      name: params.name + "#l",
+      point1: params.point1,
+      point2: params.point2
+    })
+      .PB({
+        name: params.name + "#pb",
+        point1: params.point1,
+        point2: params.point2
+      })
+      .I({
+        name: params.name,
+        object1: params.name + "#l",
+        object2: params.name + "#pb",
+        visible: params.visible,
+        color: params.color ?? this.defaultColor
+      });
   }
   public readonly M = this.midpoint;
 
@@ -527,21 +575,52 @@ export class Construction {
    * @param color The color to draw this line with
    * @chainable
    */
-  erectedPerpindicular(
-    name: String,
-    point: String,
-    line: String,
-    pointOnLine: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.C(name + "#c1", point, pointOnLine, false)
-      .I(name + "#p1", line, name + "#c1", false)
-      .I(name + "#p2", line, name + "#c1", true)
-      .C(name + "#c2", name + "#p1", name + "#p2")
-      .C(name + "#c3", name + "#p2", name + "#p1")
-      .I(name + "#p3", name + "#c2", name + "#c3", false)
-      .L(name, name + "#p3", point, visible, false, color);
+  erectedPerpindicular(params: {
+    name: string;
+    point: string;
+    line: string;
+    pointOnLine: string;
+    visible?: boolean;
+    color?: p5.Color;
+  }): Construction {
+    return this.C({
+      name: params.name + "#c1",
+      center: params.point,
+      edge: params.pointOnLine
+    })
+      .I({
+        name: params.name + "#p1",
+        object1: params.line,
+        object2: params.name + "#c1"
+      })
+      .I({
+        name: params.name + "#p2",
+        object1: params.line,
+        object2: params.name + "#c1",
+        toggle: true
+      })
+      .C({
+        name: params.name + "#c2",
+        center: params.name + "#p1",
+        edge: params.name + "#p2"
+      })
+      .C({
+        name: params.name + "#c3",
+        center: params.name + "#p2",
+        edge: params.name + "#p1"
+      })
+      .I({
+        name: params.name + "#p3",
+        object1: params.name + "#c2",
+        object2: params.name + "#c3"
+      })
+      .L({
+        name: params.name,
+        point1: params.name + "#p3",
+        point2: params.point,
+        visible: params.visible,
+        color: params.color
+      });
   }
   public readonly EP = this.erectedPerpindicular;
 
@@ -554,17 +633,31 @@ export class Construction {
    * @param visible Whether or not to draw this point
    * @param color The color to draw this point with
    */
-  circumcenter(
-    name: String,
-    point1: String,
-    point2: String,
-    point3: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.PB(name + "#pb1", point1, point2)
-      .PB(name + "#pb2", point1, point3)
-      .I(name, name + "#pb1", name + "#pb2", visible, false, color);
+  circumcenter(params: {
+    name: string;
+    point1: string;
+    point2: string;
+    point3: string;
+    visible?: boolean;
+    color?: p5.Color;
+  }): Construction {
+    return this.PB({
+      name: params.name + "#pb1",
+      point1: params.point1,
+      point2: params.point2
+    })
+      .PB({
+        name: params.name + "#pb2",
+        point1: params.point1,
+        point2: params.point3
+      })
+      .I({
+        name: params.name,
+        object1: params.name + "#pb1",
+        object2: params.name + "#pb2",
+        visible: params.visible,
+        color: params.color
+      });
   }
   public readonly CC = this.circumcenter;
 
@@ -577,21 +670,26 @@ export class Construction {
    * @param visible Whether or not to draw this circle
    * @param color The color to draw this circle with
    */
-  circleThrough3EdgePoints(
-    name: String,
-    point1: String,
-    point2: String,
-    point3: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
-    return this.CC(name + "#cc", point1, point2, point3, false).C(
-      name + "#c",
-      name + "#cc",
-      point1,
-      visible,
-      color
-    );
+  circleThrough3EdgePoints(params: {
+    name: string;
+    point1: string;
+    point2: string;
+    point3: string;
+    visible?: boolean;
+    color?: p5.Color;
+  }): Construction {
+    return this.CC({
+      name: params.name + "#cc",
+      point1: params.point1,
+      point2: params.point2,
+      point3: params.point3
+    }).C({
+      name: params.name + "#c",
+      center: params.name + "#cc",
+      edge: params.point1,
+      visible: params.visible,
+      color: params.color
+    });
   }
   public readonly C3 = this.circleThrough3EdgePoints;
 
@@ -605,34 +703,39 @@ export class Construction {
    * @param visible Whether or not to draw this arc
    * @param color The color to draw this arc with
    */
-  arcThrough3EdgePoints(
-    name: String,
-    point1: String,
-    point2: String,
-    point3: String,
-    visible: boolean = false,
-    color: p5.Color = this.defaultColor
-  ): Construction {
+  arcThrough3EdgePoints(params: {
+    name: string;
+    point1: string;
+    point2: string;
+    point3: string;
+    visible?: boolean;
+    color?: p5.Color;
+  }): Construction {
     let toggle = false; // TODO figure out toggle from point2
 
-    return this.CC(name + "#cc", point1, point2, point3, false).A(
-      name,
-      name + "#cc",
-      point1,
-      point2,
+    return this.CC({
+      name: params.name + "#cc",
+      point1: params.point1,
+      point2: params.point2,
+      point3: params.point3
+    }).A({
+      name: params.name,
+      center: params.name + "#cc",
+      edge1: params.point1,
+      edge2: params.point2,
       toggle,
-      visible,
-      color
-    );
+      visible: params.visible,
+      color: params.color
+    });
   }
   public readonly A3 = this.arcThrough3EdgePoints;
 
   // TODO make this not suck
   /*angleBisector(
-    name: String,
-    point1: String,
-    point2: String,
-    point3: String,
+    name: string,
+    point1: string,
+    point2: string,
+    point3: string,
     visible: boolean = false
   ): Construction {
     return this.addCircle(

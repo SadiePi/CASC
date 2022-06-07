@@ -38,24 +38,63 @@ const sketch = (p5: P5) => {
     //   .line("pbpcc", "pbp", "cc", true, true, p5.color("gold"));
 
     hexagon = new CASC.Construction(p5, false, p5.color("RebeccaPurple"))
-      .point("O", p5.createVector(0, 0))
-      .point("U", mouse)
-      .line("OU", "O", "U")
-      .circle("Cir", "O", "U")
-      .intersection("A", "OU", "Cir", true)
-      .intersection("D", "OU", "Cir", false)
-      .circle("C1", "A", "O")
-      .circle("C2", "D", "O")
-      .intersection("B", "Cir", "C1", false)
-      .intersection("C", "Cir", "C2", true)
-      .intersection("E", "Cir", "C2", false)
-      .intersection("F", "Cir", "C1", true)
-      .line("AB", "A", "B", true, true, p5.color("hotpink"))
-      .line("BC", "B", "C", true, true)
-      .line("CD", "C", "D", true, true, p5.color("hotpink"))
-      .line("DE", "D", "E", true, true)
-      .line("EF", "E", "F", true, true, p5.color("hotpink"))
-      .line("FA", "F", "A", true, true);
+      .point({ name: "O", vector: p5.createVector(0, 0) })
+      .point({ name: "U", vector: mouse })
+      .line({ name: "OU", point1: "O", point2: "U" })
+      .circle({ name: "Cir", center: "O", edge: "U" })
+      .intersection({ name: "A", object1: "OU", object2: "Cir", toggle: true })
+      .intersection({ name: "D", object1: "OU", object2: "Cir" })
+      .circle({ name: "C1", center: "A", edge: "O" })
+      .circle({ name: "C2", center: "D", edge: "O" })
+      .intersection({ name: "B", object1: "Cir", object2: "C1" })
+      .intersection({ name: "C", object1: "Cir", object2: "C2", toggle: true })
+      .intersection({ name: "E", object1: "Cir", object2: "C2" })
+      .intersection({ name: "F", object1: "Cir", object2: "C1", toggle: true })
+      .line({
+        name: "AB",
+        point1: "A",
+        point2: "B",
+        visible: true,
+        segment: true,
+        color: p5.color("hotpink")
+      })
+      .line({
+        name: "BC",
+        point1: "B",
+        point2: "C",
+        visible: true,
+        segment: true
+      })
+      .line({
+        name: "CD",
+        point1: "C",
+        point2: "D",
+        visible: true,
+        segment: true,
+        color: p5.color("hotpink")
+      })
+      .line({
+        name: "DE",
+        point1: "D",
+        point2: "E",
+        visible: true,
+        segment: true
+      })
+      .line({
+        name: "EF",
+        point1: "E",
+        point2: "F",
+        visible: true,
+        segment: true,
+        color: p5.color("hotpink")
+      })
+      .line({
+        name: "FA",
+        point1: "F",
+        point2: "A",
+        visible: true,
+        segment: true
+      });
   };
 
   p5.draw = () => {
